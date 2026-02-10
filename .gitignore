@@ -97,3 +97,7 @@ __debug_bin*
 PLAN.md
 ignoredlogs
 *.pprof
+
+
+# Ignore custom
+discard

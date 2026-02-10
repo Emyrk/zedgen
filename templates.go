@@ -2,15 +2,11 @@ package zedgen
 
 import (
 	"embed"
+	_ "embed"
 	"fmt"
 	"io/fs"
 	"strings"
 	"text/template"
-
-	_ "embed"
-
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 )
 
 //go:embed templates/*.tmpl
@@ -21,8 +17,10 @@ type Templates struct {
 }
 
 func LoadTemplates() (*Templates, error) {
-	tpl := template.New("")
-
+	var tpl = template.New("").Funcs(template.FuncMap{
+		"capitalize": capitalize,
+		"comment":    comment,
+	})
 	err := fs.WalkDir(templatesDirectory, "templates", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return fmt.Errorf("walk templates: %w", err)
@@ -45,7 +43,11 @@ func LoadTemplates() (*Templates, error) {
 }
 
 func capitalize(name string) string {
-	return cases.Title(language.English).String(name)
+	if len(name) == 0 {
+		return name
+	}
+	// Only uppercase the first letter, preserve the rest
+	return strings.ToUpper(name[:1]) + name[1:]
 }
 
 func comment(body string) string {

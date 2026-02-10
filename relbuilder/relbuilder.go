@@ -7,15 +7,26 @@ import (
 	"github.com/authzed/gochugaru/rel"
 )
 
-type Builder struct {
+// Builder is the interface for relationship building operations.
+type Builder interface {
+	Add(op v1.RelationshipUpdate_Operation, r *v1.Relationship) Builder
+	Touch(r *v1.Relationship) Builder
+	Create(r *v1.Relationship) Builder
+	Delete(r *v1.Relationship) Builder
+}
+
+// Build is the concrete implementation of Builder that accumulates relationships.
+type Build struct {
 	txn rel.Txn
 }
 
-func New() *Builder {
-	return &Builder{}
+// NewBuild creates a new relationship builder.
+func NewBuild() *Build {
+	return &Build{}
 }
 
-func (b *Builder) Add(op v1.RelationshipUpdate_Operation, r *v1.Relationship) *Builder {
+// Add adds a relationship with the specified operation type.
+func (b *Build) Add(op v1.RelationshipUpdate_Operation, r *v1.Relationship) Builder {
 	switch op {
 	case v1.RelationshipUpdate_OPERATION_TOUCH:
 		return b.Touch(r)
@@ -28,90 +39,30 @@ func (b *Builder) Add(op v1.RelationshipUpdate_Operation, r *v1.Relationship) *B
 	}
 }
 
-func (b *Builder) Touch(r *v1.Relationship) *Builder {
+// Touch idempotently creates or updates a relationship.
+func (b *Build) Touch(r *v1.Relationship) Builder {
 	b.txn.Touch(*rel.FromV1Proto(r))
 	return b
 }
 
-func (b *Builder) Create(r *v1.Relationship) *Builder {
+// Create inserts a new relationship (fails if already exists).
+func (b *Build) Create(r *v1.Relationship) Builder {
 	b.txn.Create(*rel.FromV1Proto(r))
 	return b
 }
 
-func (b *Builder) Delete(r *v1.Relationship) *Builder {
+// Delete removes a relationship.
+func (b *Build) Delete(r *v1.Relationship) Builder {
 	b.txn.Delete(*rel.FromV1Proto(r))
 	return b
 }
 
-func (b *Builder) User(id fmt.Stringer) *ObjUser {
-	return &ObjUser{
-		src: Object{
-			Obj: &v1.ObjectReference{
-				ObjectType: "user",
-				ObjectId:   id.String(),
-			},
-			OptionalRelation: "",
-			builder:          b,
-		},
-	}
+// Updates returns the accumulated relationship updates for use with WriteRelationships.
+func (b *Build) Updates() []*v1.RelationshipUpdate {
+	return b.txn.V1Updates
 }
 
-type ObjUser struct {
-	src Object
-}
-
-func (obj *ObjUser) Touch() *ObjUserRelates {
-	return &ObjUserRelates{rel: obj.src.Touch()}
-}
-
-//
-
-func (b *Builder) Resource(id fmt.Stringer) *ObjResource {
-	return &ObjResource{
-		src: Object{
-			Obj: &v1.ObjectReference{
-				ObjectType: "resource",
-				ObjectId:   id.String(),
-			},
-			OptionalRelation: "",
-			builder:          b,
-		},
-	}
-}
-
-type ObjUserRelates struct {
-	rel Relationship
-}
-
-type ObjResource struct {
-	src Object
-}
-
-func (obj *ObjResource) Touch() *ObjResourceRelates {
-	return &ObjResourceRelates{rel: obj.src.Touch()}
-}
-
-type ObjResourceRelates struct {
-	rel Relationship
-}
-
-func (obj *ObjResourceRelates) Writer(subs ...*ObjUser) *ObjResourceRelates {
-	for _, sub := range subs {
-		obj.rel.builder.Add(obj.rel.Operation, &v1.Relationship{
-			Resource: sub.src.Obj,
-			Relation: "writer",
-			Subject: &v1.SubjectReference{
-				Object: sub.src.Obj,
-			},
-			OptionalCaveat:    nil,
-			OptionalExpiresAt: nil,
-		})
-	}
-	return obj
-}
-
-func foo() {
-	b := New()
-
-	b.Resource(String("foo")).Touch().Writer(String("hello"))
+// Preconditions returns any preconditions that were set on the transaction.
+func (b *Build) Preconditions() []*v1.Precondition {
+	return b.txn.V1Preconds
 }

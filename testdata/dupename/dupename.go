@@ -2,210 +2,210 @@
 package policy
 
 import (
-	"context"
 	"fmt"
 
+	. "github.com/Emyrk/zedgen/relbuilder"
 	v1 "github.com/authzed/authzed-go/proto/authzed/api/v1"
 )
 
-// String is used to use string literals instead of uuids.
-type String string
-
-func (s String) String() string {
-	return string(s)
+// SchemaBuilder is the entry point for building relationships and permission checks.
+// It embeds relbuilder.Build for access to Updates() and Preconditions().
+type SchemaBuilder struct {
+	*Build
 }
 
-type AuthzedObject interface {
-	Object() *v1.ObjectReference
-	AsSubject() *v1.SubjectReference
-}
-
-// PermissionCheck can be read as:
-// Can 'subject' do 'permission' on 'object'?
-type PermissionCheck struct {
-	// Subject has an optional
-	Subject    *v1.SubjectReference
-	Permission string
-	Obj        *v1.ObjectReference
-}
-
-// Builder contains all the saved relationships and permission checks during
-// function calls that extend from it.
-// This means you can use the builder to create a set of relationships to add
-// to the graph and/or a set of permission checks to validate.
-type Builder struct {
-	// Relationships are new graph connections to be formed.
-	// This will expand the capability/permissions.
-	Relationships []v1.Relationship
-	// PermissionChecks are the set of capabilities required.
-	PermissionChecks []PermissionCheck
-}
-
-func New() *Builder {
-	return &Builder{
-		Relationships:    make([]v1.Relationship, 0),
-		PermissionChecks: make([]PermissionCheck, 0),
+// New creates a new SchemaBuilder instance.
+func New() *SchemaBuilder {
+	return &SchemaBuilder{
+		Build: NewBuild(),
 	}
-}
-
-func (b *Builder) AddRelationship(r v1.Relationship) *Builder {
-	b.Relationships = append(b.Relationships, r)
-	return b
-}
-
-func (b *Builder) CheckPermission(subj AuthzedObject, permission string, on AuthzedObject) *Builder {
-	b.PermissionChecks = append(b.PermissionChecks, PermissionCheck{
-		Subject: &v1.SubjectReference{
-			Object:           subj.Object(),
-			OptionalRelation: "",
-		},
-		Permission: permission,
-		Obj:        on.Object(),
-	})
-	return b
 }
 
 type ObjOther struct {
-	Obj              *v1.ObjectReference
-	OptionalRelation string
-	Builder          *Builder
+	src Object
 }
 
-func (b *Builder) Other(id fmt.Stringer) *ObjOther {
-	o := &ObjOther{
-		Obj: &v1.ObjectReference{
+func (b *SchemaBuilder) Other(id fmt.Stringer) *ObjOther {
+	return &ObjOther{
+		src: b.Object(&v1.ObjectReference{
 			ObjectType: "other",
 			ObjectId:   id.String(),
-		},
-		Builder: b,
+		}, ""),
 	}
-	return o
 }
 
+// Object returns the underlying ObjectReference for use in SpiceDB API calls.
 func (obj *ObjOther) Object() *v1.ObjectReference {
-	return obj.Obj
+	return obj.src.Obj
 }
 
+// AsSubject returns this object as a SubjectReference for use in checks.
 func (obj *ObjOther) AsSubject() *v1.SubjectReference {
 	return &v1.SubjectReference{
-		Object:           obj.Object(),
-		OptionalRelation: obj.OptionalRelation,
+		Object:           obj.src.Obj,
+		OptionalRelation: obj.src.OptionalRelation,
 	}
 }
 
 type ObjPerson struct {
-	Obj              *v1.ObjectReference
-	OptionalRelation string
-	Builder          *Builder
+	src Object
 }
 
-func (b *Builder) Person(id fmt.Stringer) *ObjPerson {
-	o := &ObjPerson{
-		Obj: &v1.ObjectReference{
+func (b *SchemaBuilder) Person(id fmt.Stringer) *ObjPerson {
+	return &ObjPerson{
+		src: b.Object(&v1.ObjectReference{
 			ObjectType: "person",
 			ObjectId:   id.String(),
-		},
-		Builder: b,
+		}, ""),
 	}
-	return o
 }
 
+// Object returns the underlying ObjectReference for use in SpiceDB API calls.
 func (obj *ObjPerson) Object() *v1.ObjectReference {
-	return obj.Obj
+	return obj.src.Obj
 }
 
+// AsSubject returns this object as a SubjectReference for use in checks.
 func (obj *ObjPerson) AsSubject() *v1.SubjectReference {
 	return &v1.SubjectReference{
-		Object:           obj.Object(),
-		OptionalRelation: obj.OptionalRelation,
+		Object:           obj.src.Obj,
+		OptionalRelation: obj.src.OptionalRelation,
 	}
 }
 
-// UserUser dupename.zed:8
+func (obj *ObjPerson) RelationTest() string {
+	return "test"
+}
+
+func (obj *ObjPerson) RelationUser() string {
+	return "user"
+}
+
+func (obj *ObjPerson) PermissionRead() string {
+	return "read"
+}
+
+type PersonRelates struct {
+	obj *ObjPerson
+	rel Relationship
+}
+
+func (obj *ObjPerson) Touch() *PersonRelates {
+	return &PersonRelates{obj: obj, rel: obj.src.Touch()}
+}
+
+func (obj *ObjPerson) Delete() *PersonRelates {
+	return &PersonRelates{obj: obj, rel: obj.src.Delete()}
+}
+
+func (obj *ObjPerson) Create() *PersonRelates {
+	return &PersonRelates{obj: obj, rel: obj.src.Create()}
+}
+
+// User_User dupename.zed:8
 // Relationship: person:<id>#user@user:<id>
-func (obj *ObjPerson) UserUser(subs ...*ObjUser) *ObjPerson {
-	for i := range subs {
-		sub := subs[i]
-		obj.Builder.AddRelationship(v1.Relationship{
-			Resource: obj.Obj,
-			Relation: "user",
-			Subject: &v1.SubjectReference{
-				Object:           sub.Obj,
-				OptionalRelation: "",
-			},
-			OptionalCaveat: nil,
-		})
+// Uses Touch operation implicitly. For Delete/Create, use obj.Delete().User_User() etc.
+func (obj *ObjPerson) User_User(subs ...*ObjUser) *ObjPerson {
+	for _, sub := range subs {
+		obj.src.Touch().Add("user", sub.src.Obj, "")
 	}
 	return obj
 }
 
-// UserOther dupename.zed:8
+// User_User on Relates uses the specified operation (Touch/Create/Delete)
+func (r *PersonRelates) User_User(subs ...*ObjUser) *PersonRelates {
+	for _, sub := range subs {
+		r.rel.Add("user", sub.src.Obj, "")
+	}
+	return r
+}
+
+// User_Other dupename.zed:8
 // Relationship: person:<id>#user@other:<id>
-func (obj *ObjPerson) UserOther(subs ...*ObjOther) *ObjPerson {
-	for i := range subs {
-		sub := subs[i]
-		obj.Builder.AddRelationship(v1.Relationship{
-			Resource: obj.Obj,
-			Relation: "user",
-			Subject: &v1.SubjectReference{
-				Object:           sub.Obj,
-				OptionalRelation: "",
-			},
-			OptionalCaveat: nil,
-		})
+// Uses Touch operation implicitly. For Delete/Create, use obj.Delete().User_Other() etc.
+func (obj *ObjPerson) User_Other(subs ...*ObjOther) *ObjPerson {
+	for _, sub := range subs {
+		obj.src.Touch().Add("user", sub.src.Obj, "")
 	}
 	return obj
+}
+
+// User_Other on Relates uses the specified operation (Touch/Create/Delete)
+func (r *PersonRelates) User_Other(subs ...*ObjOther) *PersonRelates {
+	for _, sub := range subs {
+		r.rel.Add("user", sub.src.Obj, "")
+	}
+	return r
 }
 
 // Test dupename.zed:9
 // Relationship: person:<id>#test@user:<id>
+// Uses Touch operation implicitly. For Delete/Create, use obj.Delete().Test() etc.
 func (obj *ObjPerson) Test(subs ...*ObjUser) *ObjPerson {
-	for i := range subs {
-		sub := subs[i]
-		obj.Builder.AddRelationship(v1.Relationship{
-			Resource: obj.Obj,
-			Relation: "test",
-			Subject: &v1.SubjectReference{
-				Object:           sub.Obj,
-				OptionalRelation: "",
-			},
-			OptionalCaveat: nil,
-		})
+	for _, sub := range subs {
+		obj.src.Touch().Add("test", sub.src.Obj, "")
 	}
 	return obj
 }
 
-// CanRead dupename.zed:11
-// Object: person:<id>
+// Test on Relates uses the specified operation (Touch/Create/Delete)
+func (r *PersonRelates) Test(subs ...*ObjUser) *PersonRelates {
+	for _, sub := range subs {
+		r.rel.Add("test", sub.src.Obj, "")
+	}
+	return r
+}
+
+// CanRead_User checks if the subject has read permission
+// // Object: person:<id>
 // Schema: permission read = user
-func (obj *ObjPerson) CanRead(ctx context.Context) (context.Context, string, *v1.ObjectReference) {
-	return ctx, "read", obj.Object()
+func (obj *ObjPerson) CanRead_User(sub *ObjUser) *v1.CheckPermissionRequest {
+	return &v1.CheckPermissionRequest{
+		Resource:   obj.src.Obj,
+		Permission: "read",
+		Subject: &v1.SubjectReference{
+			Object:           sub.src.Obj,
+			OptionalRelation: "",
+		},
+	}
+}
+
+// CanRead_Other checks if the subject has read permission
+// // Object: person:<id>
+// Schema: permission read = user
+func (obj *ObjPerson) CanRead_Other(sub *ObjOther) *v1.CheckPermissionRequest {
+	return &v1.CheckPermissionRequest{
+		Resource:   obj.src.Obj,
+		Permission: "read",
+		Subject: &v1.SubjectReference{
+			Object:           sub.src.Obj,
+			OptionalRelation: "",
+		},
+	}
 }
 
 type ObjUser struct {
-	Obj              *v1.ObjectReference
-	OptionalRelation string
-	Builder          *Builder
+	src Object
 }
 
-func (b *Builder) User(id fmt.Stringer) *ObjUser {
-	o := &ObjUser{
-		Obj: &v1.ObjectReference{
+func (b *SchemaBuilder) User(id fmt.Stringer) *ObjUser {
+	return &ObjUser{
+		src: b.Object(&v1.ObjectReference{
 			ObjectType: "user",
 			ObjectId:   id.String(),
-		},
-		Builder: b,
+		}, ""),
 	}
-	return o
 }
 
+// Object returns the underlying ObjectReference for use in SpiceDB API calls.
 func (obj *ObjUser) Object() *v1.ObjectReference {
-	return obj.Obj
+	return obj.src.Obj
 }
 
+// AsSubject returns this object as a SubjectReference for use in checks.
 func (obj *ObjUser) AsSubject() *v1.SubjectReference {
 	return &v1.SubjectReference{
-		Object:           obj.Object(),
-		OptionalRelation: obj.OptionalRelation,
+		Object:           obj.src.Obj,
+		OptionalRelation: obj.src.OptionalRelation,
 	}
 }

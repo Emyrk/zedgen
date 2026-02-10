@@ -8,8 +8,8 @@ github.com/authzed/cel-go v0.20.2 h1:GlmLecGry7Z8HU0k+hmaHHUV05ZHrsFxduXHtIePvck
 github.com/authzed/cel-go v0.20.2/go.mod h1:pJHVFWbqUHV1J+klQoZubdKswlbxcsbojda3mye9kiU=
 github.com/authzed/gochugaru v0.0.0-20250806201116-319cc7551988 h1:VLYqumUGyJEcwrxL9+peNLSZqmbbeUsBJemkTJ4cCRc=
 github.com/authzed/gochugaru v0.0.0-20250806201116-319cc7551988/go.mod h1:SLL9aWEodwrNF0yUEgcEATiHEWQWSy8hNBl0fXxeCEE=
-github.com/authzed/spicedb v1.49.0 h1:bYur5ZdXYswkqzOr7kOe+aqoFAxkMFZPEgVZkq69Sr8=
-github.com/authzed/spicedb v1.49.0/go.mod h1:y1lqTOngiYqud5y0q7CL8gOAdYW1DMBloeJQ6NNukZM=
+github.com/authzed/spicedb v1.49.1 h1:iz8AXzrVyLfcIlD0s/t6Fxv+K/bTP2/AOpC1DdobPU8=
+github.com/authzed/spicedb v1.49.1/go.mod h1:kee/xe1npMZ3pcU2eEUhhKnR/8B4UtVjVoSuYExkqDs=
 github.com/ccoveille/go-safecast/v2 v2.0.0 h1:+5eyITXAUj3wMjad6cRVJKGnC7vDS55zk0INzJagub0=
 github.com/ccoveille/go-safecast/v2 v2.0.0/go.mod h1:JIYA4CAR33blIDuE6fSwCp2sz1oOBahXnvmdBhOAABs=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=

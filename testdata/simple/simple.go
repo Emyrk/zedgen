@@ -2,171 +2,170 @@
 package policy
 
 import (
-	"context"
 	"fmt"
 
+	. "github.com/Emyrk/zedgen/relbuilder"
 	v1 "github.com/authzed/authzed-go/proto/authzed/api/v1"
 )
 
-// String is used to use string literals instead of uuids.
-type String string
-
-func (s String) String() string {
-	return string(s)
+// SchemaBuilder is the entry point for building relationships and permission checks.
+// It embeds relbuilder.Build for access to Updates() and Preconditions().
+type SchemaBuilder struct {
+	*Build
 }
 
-type AuthzedObject interface {
-	Object() *v1.ObjectReference
-	AsSubject() *v1.SubjectReference
-}
-
-// PermissionCheck can be read as:
-// Can 'subject' do 'permission' on 'object'?
-type PermissionCheck struct {
-	// Subject has an optional
-	Subject    *v1.SubjectReference
-	Permission string
-	Obj        *v1.ObjectReference
-}
-
-// Builder contains all the saved relationships and permission checks during
-// function calls that extend from it.
-// This means you can use the builder to create a set of relationships to add
-// to the graph and/or a set of permission checks to validate.
-type Builder struct {
-	// Relationships are new graph connections to be formed.
-	// This will expand the capability/permissions.
-	Relationships []v1.Relationship
-	// PermissionChecks are the set of capabilities required.
-	PermissionChecks []PermissionCheck
-}
-
-func New() *Builder {
-	return &Builder{
-		Relationships:    make([]v1.Relationship, 0),
-		PermissionChecks: make([]PermissionCheck, 0),
+// New creates a new SchemaBuilder instance.
+func New() *SchemaBuilder {
+	return &SchemaBuilder{
+		Build: NewBuild(),
 	}
-}
-
-func (b *Builder) AddRelationship(r v1.Relationship) *Builder {
-	b.Relationships = append(b.Relationships, r)
-	return b
-}
-
-func (b *Builder) CheckPermission(subj AuthzedObject, permission string, on AuthzedObject) *Builder {
-	b.PermissionChecks = append(b.PermissionChecks, PermissionCheck{
-		Subject: &v1.SubjectReference{
-			Object:           subj.Object(),
-			OptionalRelation: "",
-		},
-		Permission: permission,
-		Obj:        on.Object(),
-	})
-	return b
 }
 
 type ObjResource struct {
-	Obj              *v1.ObjectReference
-	OptionalRelation string
-	Builder          *Builder
+	src Object
 }
 
-func (b *Builder) Resource(id fmt.Stringer) *ObjResource {
-	o := &ObjResource{
-		Obj: &v1.ObjectReference{
+func (b *SchemaBuilder) Resource(id fmt.Stringer) *ObjResource {
+	return &ObjResource{
+		src: b.Object(&v1.ObjectReference{
 			ObjectType: "resource",
 			ObjectId:   id.String(),
-		},
-		Builder: b,
+		}, ""),
 	}
-	return o
 }
 
+// Object returns the underlying ObjectReference for use in SpiceDB API calls.
 func (obj *ObjResource) Object() *v1.ObjectReference {
-	return obj.Obj
+	return obj.src.Obj
 }
 
+// AsSubject returns this object as a SubjectReference for use in checks.
 func (obj *ObjResource) AsSubject() *v1.SubjectReference {
 	return &v1.SubjectReference{
-		Object:           obj.Object(),
-		OptionalRelation: obj.OptionalRelation,
+		Object:           obj.src.Obj,
+		OptionalRelation: obj.src.OptionalRelation,
 	}
+}
+
+func (obj *ObjResource) RelationViewer() string {
+	return "viewer"
+}
+
+func (obj *ObjResource) RelationWriter() string {
+	return "writer"
+}
+
+func (obj *ObjResource) PermissionWrite() string {
+	return "write"
+}
+
+func (obj *ObjResource) PermissionView() string {
+	return "view"
+}
+
+type ResourceRelates struct {
+	obj *ObjResource
+	rel Relationship
+}
+
+func (obj *ObjResource) Touch() *ResourceRelates {
+	return &ResourceRelates{obj: obj, rel: obj.src.Touch()}
+}
+
+func (obj *ObjResource) Delete() *ResourceRelates {
+	return &ResourceRelates{obj: obj, rel: obj.src.Delete()}
+}
+
+func (obj *ObjResource) Create() *ResourceRelates {
+	return &ResourceRelates{obj: obj, rel: obj.src.Create()}
 }
 
 // Writer simple.zed:7
 // Relationship: resource:<id>#writer@user:<id>
+// Uses Touch operation implicitly. For Delete/Create, use obj.Delete().Writer() etc.
 func (obj *ObjResource) Writer(subs ...*ObjUser) *ObjResource {
-	for i := range subs {
-		sub := subs[i]
-		obj.Builder.AddRelationship(v1.Relationship{
-			Resource: obj.Obj,
-			Relation: "writer",
-			Subject: &v1.SubjectReference{
-				Object:           sub.Obj,
-				OptionalRelation: "",
-			},
-			OptionalCaveat: nil,
-		})
+	for _, sub := range subs {
+		obj.src.Touch().Add("writer", sub.src.Obj, "")
 	}
 	return obj
+}
+
+// Writer on Relates uses the specified operation (Touch/Create/Delete)
+func (r *ResourceRelates) Writer(subs ...*ObjUser) *ResourceRelates {
+	for _, sub := range subs {
+		r.rel.Add("writer", sub.src.Obj, "")
+	}
+	return r
 }
 
 // Viewer simple.zed:8
 // Relationship: resource:<id>#viewer@user:<id>
+// Uses Touch operation implicitly. For Delete/Create, use obj.Delete().Viewer() etc.
 func (obj *ObjResource) Viewer(subs ...*ObjUser) *ObjResource {
-	for i := range subs {
-		sub := subs[i]
-		obj.Builder.AddRelationship(v1.Relationship{
-			Resource: obj.Obj,
-			Relation: "viewer",
-			Subject: &v1.SubjectReference{
-				Object:           sub.Obj,
-				OptionalRelation: "",
-			},
-			OptionalCaveat: nil,
-		})
+	for _, sub := range subs {
+		obj.src.Touch().Add("viewer", sub.src.Obj, "")
 	}
 	return obj
 }
 
-// CanWrite simple.zed:10
-// Object: resource:<id>
-// Schema: permission write = writer
-func (obj *ObjResource) CanWrite(ctx context.Context) (context.Context, string, *v1.ObjectReference) {
-	return ctx, "write", obj.Object()
+// Viewer on Relates uses the specified operation (Touch/Create/Delete)
+func (r *ResourceRelates) Viewer(subs ...*ObjUser) *ResourceRelates {
+	for _, sub := range subs {
+		r.rel.Add("viewer", sub.src.Obj, "")
+	}
+	return r
 }
 
-// CanView simple.zed:11
-// Object: resource:<id>
+// CanWrite_User checks if the subject has write permission
+// // Object: resource:<id>
+// Schema: permission write = writer
+func (obj *ObjResource) CanWrite_User(sub *ObjUser) *v1.CheckPermissionRequest {
+	return &v1.CheckPermissionRequest{
+		Resource:   obj.src.Obj,
+		Permission: "write",
+		Subject: &v1.SubjectReference{
+			Object:           sub.src.Obj,
+			OptionalRelation: "",
+		},
+	}
+}
+
+// CanView_User checks if the subject has view permission
+// // Object: resource:<id>
 // Schema: permission view = viewer + writer
-func (obj *ObjResource) CanView(ctx context.Context) (context.Context, string, *v1.ObjectReference) {
-	return ctx, "view", obj.Object()
+func (obj *ObjResource) CanView_User(sub *ObjUser) *v1.CheckPermissionRequest {
+	return &v1.CheckPermissionRequest{
+		Resource:   obj.src.Obj,
+		Permission: "view",
+		Subject: &v1.SubjectReference{
+			Object:           sub.src.Obj,
+			OptionalRelation: "",
+		},
+	}
 }
 
 type ObjUser struct {
-	Obj              *v1.ObjectReference
-	OptionalRelation string
-	Builder          *Builder
+	src Object
 }
 
-func (b *Builder) User(id fmt.Stringer) *ObjUser {
-	o := &ObjUser{
-		Obj: &v1.ObjectReference{
+func (b *SchemaBuilder) User(id fmt.Stringer) *ObjUser {
+	return &ObjUser{
+		src: b.Object(&v1.ObjectReference{
 			ObjectType: "user",
 			ObjectId:   id.String(),
-		},
-		Builder: b,
+		}, ""),
 	}
-	return o
 }
 
+// Object returns the underlying ObjectReference for use in SpiceDB API calls.
 func (obj *ObjUser) Object() *v1.ObjectReference {
-	return obj.Obj
+	return obj.src.Obj
 }
 
+// AsSubject returns this object as a SubjectReference for use in checks.
 func (obj *ObjUser) AsSubject() *v1.SubjectReference {
 	return &v1.SubjectReference{
-		Object:           obj.Object(),
-		OptionalRelation: obj.OptionalRelation,
+		Object:           obj.src.Obj,
+		OptionalRelation: obj.src.OptionalRelation,
 	}
 }

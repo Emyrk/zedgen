@@ -2,307 +2,358 @@
 package policy
 
 import (
-	"context"
 	"fmt"
 
+	. "github.com/Emyrk/zedgen/relbuilder"
 	v1 "github.com/authzed/authzed-go/proto/authzed/api/v1"
 )
 
-// String is used to use string literals instead of uuids.
-type String string
-
-func (s String) String() string {
-	return string(s)
+// SchemaBuilder is the entry point for building relationships and permission checks.
+// It embeds relbuilder.Build for access to Updates() and Preconditions().
+type SchemaBuilder struct {
+	*Build
 }
 
-type AuthzedObject interface {
-	Object() *v1.ObjectReference
-	AsSubject() *v1.SubjectReference
-}
-
-// PermissionCheck can be read as:
-// Can 'subject' do 'permission' on 'object'?
-type PermissionCheck struct {
-	// Subject has an optional
-	Subject    *v1.SubjectReference
-	Permission string
-	Obj        *v1.ObjectReference
-}
-
-// Builder contains all the saved relationships and permission checks during
-// function calls that extend from it.
-// This means you can use the builder to create a set of relationships to add
-// to the graph and/or a set of permission checks to validate.
-type Builder struct {
-	// Relationships are new graph connections to be formed.
-	// This will expand the capability/permissions.
-	Relationships []v1.Relationship
-	// PermissionChecks are the set of capabilities required.
-	PermissionChecks []PermissionCheck
-}
-
-func New() *Builder {
-	return &Builder{
-		Relationships:    make([]v1.Relationship, 0),
-		PermissionChecks: make([]PermissionCheck, 0),
+// New creates a new SchemaBuilder instance.
+func New() *SchemaBuilder {
+	return &SchemaBuilder{
+		Build: NewBuild(),
 	}
-}
-
-func (b *Builder) AddRelationship(r v1.Relationship) *Builder {
-	b.Relationships = append(b.Relationships, r)
-	return b
-}
-
-func (b *Builder) CheckPermission(subj AuthzedObject, permission string, on AuthzedObject) *Builder {
-	b.PermissionChecks = append(b.PermissionChecks, PermissionCheck{
-		Subject: &v1.SubjectReference{
-			Object:           subj.Object(),
-			OptionalRelation: "",
-		},
-		Permission: permission,
-		Obj:        on.Object(),
-	})
-	return b
 }
 
 type ObjFile struct {
-	Obj              *v1.ObjectReference
-	OptionalRelation string
-	Builder          *Builder
+	src Object
 }
 
-func (b *Builder) File(id fmt.Stringer) *ObjFile {
-	o := &ObjFile{
-		Obj: &v1.ObjectReference{
+func (b *SchemaBuilder) File(id fmt.Stringer) *ObjFile {
+	return &ObjFile{
+		src: b.Object(&v1.ObjectReference{
 			ObjectType: "file",
 			ObjectId:   id.String(),
-		},
-		Builder: b,
+		}, ""),
 	}
-	return o
 }
 
+// Object returns the underlying ObjectReference for use in SpiceDB API calls.
 func (obj *ObjFile) Object() *v1.ObjectReference {
-	return obj.Obj
+	return obj.src.Obj
 }
 
+// AsSubject returns this object as a SubjectReference for use in checks.
 func (obj *ObjFile) AsSubject() *v1.SubjectReference {
 	return &v1.SubjectReference{
-		Object:           obj.Object(),
-		OptionalRelation: obj.OptionalRelation,
+		Object:           obj.src.Obj,
+		OptionalRelation: obj.src.OptionalRelation,
 	}
+}
+
+func (obj *ObjFile) RelationFolder() string {
+	return "folder"
+}
+
+func (obj *ObjFile) PermissionRead() string {
+	return "read"
+}
+
+type FileRelates struct {
+	obj *ObjFile
+	rel Relationship
+}
+
+func (obj *ObjFile) Touch() *FileRelates {
+	return &FileRelates{obj: obj, rel: obj.src.Touch()}
+}
+
+func (obj *ObjFile) Delete() *FileRelates {
+	return &FileRelates{obj: obj, rel: obj.src.Delete()}
+}
+
+func (obj *ObjFile) Create() *FileRelates {
+	return &FileRelates{obj: obj, rel: obj.src.Create()}
 }
 
 // Folder permissionrelation.zed:18
 // Relationship: file:<id>#folder@folder:<id>
+// Uses Touch operation implicitly. For Delete/Create, use obj.Delete().Folder() etc.
 func (obj *ObjFile) Folder(subs ...*ObjFolder) *ObjFile {
-	for i := range subs {
-		sub := subs[i]
-		obj.Builder.AddRelationship(v1.Relationship{
-			Resource: obj.Obj,
-			Relation: "folder",
-			Subject: &v1.SubjectReference{
-				Object:           sub.Obj,
-				OptionalRelation: "",
-			},
-			OptionalCaveat: nil,
-		})
+	for _, sub := range subs {
+		obj.src.Touch().Add("folder", sub.src.Obj, "")
 	}
 	return obj
 }
 
-// CanRead permissionrelation.zed:20
-// Object: file:<id>
+// Folder on Relates uses the specified operation (Touch/Create/Delete)
+func (r *FileRelates) Folder(subs ...*ObjFolder) *FileRelates {
+	for _, sub := range subs {
+		r.rel.Add("folder", sub.src.Obj, "")
+	}
+	return r
+}
+
+// CanRead_Folder checks if the subject has read permission
+// // Object: file:<id>
 // Schema: permission read = folder->read
-func (obj *ObjFile) CanRead(ctx context.Context) (context.Context, string, *v1.ObjectReference) {
-	return ctx, "read", obj.Object()
+func (obj *ObjFile) CanRead_Folder(sub *ObjFolder) *v1.CheckPermissionRequest {
+	return &v1.CheckPermissionRequest{
+		Resource:   obj.src.Obj,
+		Permission: "read",
+		Subject: &v1.SubjectReference{
+			Object:           sub.src.Obj,
+			OptionalRelation: "",
+		},
+	}
 }
 
 type ObjFolder struct {
-	Obj              *v1.ObjectReference
-	OptionalRelation string
-	Builder          *Builder
+	src Object
 }
 
-func (b *Builder) Folder(id fmt.Stringer) *ObjFolder {
-	o := &ObjFolder{
-		Obj: &v1.ObjectReference{
+func (b *SchemaBuilder) Folder(id fmt.Stringer) *ObjFolder {
+	return &ObjFolder{
+		src: b.Object(&v1.ObjectReference{
 			ObjectType: "folder",
 			ObjectId:   id.String(),
-		},
-		Builder: b,
+		}, ""),
 	}
-	return o
 }
 
+// Object returns the underlying ObjectReference for use in SpiceDB API calls.
 func (obj *ObjFolder) Object() *v1.ObjectReference {
-	return obj.Obj
+	return obj.src.Obj
 }
 
+// AsSubject returns this object as a SubjectReference for use in checks.
 func (obj *ObjFolder) AsSubject() *v1.SubjectReference {
 	return &v1.SubjectReference{
-		Object:           obj.Object(),
-		OptionalRelation: obj.OptionalRelation,
+		Object:           obj.src.Obj,
+		OptionalRelation: obj.src.OptionalRelation,
 	}
 }
 
-// OwnerUser permissionrelation.zed:12
+func (obj *ObjFolder) RelationOwner() string {
+	return "owner"
+}
+
+func (obj *ObjFolder) PermissionRead() string {
+	return "read"
+}
+
+type FolderRelates struct {
+	obj *ObjFolder
+	rel Relationship
+}
+
+func (obj *ObjFolder) Touch() *FolderRelates {
+	return &FolderRelates{obj: obj, rel: obj.src.Touch()}
+}
+
+func (obj *ObjFolder) Delete() *FolderRelates {
+	return &FolderRelates{obj: obj, rel: obj.src.Delete()}
+}
+
+func (obj *ObjFolder) Create() *FolderRelates {
+	return &FolderRelates{obj: obj, rel: obj.src.Create()}
+}
+
+// Owner_User permissionrelation.zed:12
 // Relationship: folder:<id>#owner@user:<id>
-func (obj *ObjFolder) OwnerUser(subs ...*ObjUser) *ObjFolder {
-	for i := range subs {
-		sub := subs[i]
-		obj.Builder.AddRelationship(v1.Relationship{
-			Resource: obj.Obj,
-			Relation: "owner",
-			Subject: &v1.SubjectReference{
-				Object:           sub.Obj,
-				OptionalRelation: "",
-			},
-			OptionalCaveat: nil,
-		})
+// Uses Touch operation implicitly. For Delete/Create, use obj.Delete().Owner_User() etc.
+func (obj *ObjFolder) Owner_User(subs ...*ObjUser) *ObjFolder {
+	for _, sub := range subs {
+		obj.src.Touch().Add("owner", sub.src.Obj, "")
 	}
 	return obj
 }
 
-// OwnerGroup permissionrelation.zed:12
+// Owner_User on Relates uses the specified operation (Touch/Create/Delete)
+func (r *FolderRelates) Owner_User(subs ...*ObjUser) *FolderRelates {
+	for _, sub := range subs {
+		r.rel.Add("owner", sub.src.Obj, "")
+	}
+	return r
+}
+
+// Owner_Group permissionrelation.zed:12
 // Relationship: folder:<id>#owner@group:<id>#membership
-func (obj *ObjFolder) OwnerGroup(subs ...*ObjGroup) *ObjFolder {
-	for i := range subs {
-		sub := subs[i]
-		obj.Builder.AddRelationship(v1.Relationship{
-			Resource: obj.Obj,
-			Relation: "owner",
-			Subject: &v1.SubjectReference{
-				Object:           sub.Obj,
-				OptionalRelation: "membership",
-			},
-			OptionalCaveat: nil,
-		})
+// Uses Touch operation implicitly. For Delete/Create, use obj.Delete().Owner_Group() etc.
+func (obj *ObjFolder) Owner_Group(subs ...*ObjGroup) *ObjFolder {
+	for _, sub := range subs {
+		obj.src.Touch().Add("owner", sub.src.Obj, "membership")
 	}
 	return obj
 }
 
-// CanRead permissionrelation.zed:14
-// Object: folder:<id>
+// Owner_Group on Relates uses the specified operation (Touch/Create/Delete)
+func (r *FolderRelates) Owner_Group(subs ...*ObjGroup) *FolderRelates {
+	for _, sub := range subs {
+		r.rel.Add("owner", sub.src.Obj, "membership")
+	}
+	return r
+}
+
+// CanRead_User checks if the subject has read permission
+// // Object: folder:<id>
 // Schema: permission read = owner
-func (obj *ObjFolder) CanRead(ctx context.Context) (context.Context, string, *v1.ObjectReference) {
-	return ctx, "read", obj.Object()
+func (obj *ObjFolder) CanRead_User(sub *ObjUser) *v1.CheckPermissionRequest {
+	return &v1.CheckPermissionRequest{
+		Resource:   obj.src.Obj,
+		Permission: "read",
+		Subject: &v1.SubjectReference{
+			Object:           sub.src.Obj,
+			OptionalRelation: "",
+		},
+	}
+}
+
+// CanRead_GroupMembership checks if the subject has read permission
+// // Object: folder:<id>
+// Schema: permission read = owner
+func (obj *ObjFolder) CanRead_GroupMembership(sub *ObjGroup) *v1.CheckPermissionRequest {
+	return &v1.CheckPermissionRequest{
+		Resource:   obj.src.Obj,
+		Permission: "read",
+		Subject: &v1.SubjectReference{
+			Object:           sub.src.Obj,
+			OptionalRelation: "membership",
+		},
+	}
 }
 
 type ObjGroup struct {
-	Obj              *v1.ObjectReference
-	OptionalRelation string
-	Builder          *Builder
+	src Object
 }
 
-func (b *Builder) Group(id fmt.Stringer) *ObjGroup {
-	o := &ObjGroup{
-		Obj: &v1.ObjectReference{
+func (b *SchemaBuilder) Group(id fmt.Stringer) *ObjGroup {
+	return &ObjGroup{
+		src: b.Object(&v1.ObjectReference{
 			ObjectType: "group",
 			ObjectId:   id.String(),
-		},
-		Builder: b,
+		}, ""),
 	}
-	return o
 }
 
+// Object returns the underlying ObjectReference for use in SpiceDB API calls.
 func (obj *ObjGroup) Object() *v1.ObjectReference {
-	return obj.Obj
+	return obj.src.Obj
 }
 
+// AsSubject returns this object as a SubjectReference for use in checks.
 func (obj *ObjGroup) AsSubject() *v1.SubjectReference {
 	return &v1.SubjectReference{
-		Object:           obj.Object(),
-		OptionalRelation: obj.OptionalRelation,
+		Object:           obj.src.Obj,
+		OptionalRelation: obj.src.OptionalRelation,
 	}
 }
 
-// MemberUser permissionrelation.zed:4
+func (obj *ObjGroup) RelationMember() string {
+	return "member"
+}
+
+func (obj *ObjGroup) PermissionMembership() string {
+	return "membership"
+}
+
+type GroupRelates struct {
+	obj *ObjGroup
+	rel Relationship
+}
+
+func (obj *ObjGroup) Touch() *GroupRelates {
+	return &GroupRelates{obj: obj, rel: obj.src.Touch()}
+}
+
+func (obj *ObjGroup) Delete() *GroupRelates {
+	return &GroupRelates{obj: obj, rel: obj.src.Delete()}
+}
+
+func (obj *ObjGroup) Create() *GroupRelates {
+	return &GroupRelates{obj: obj, rel: obj.src.Create()}
+}
+
+// Member_User permissionrelation.zed:4
 // Relationship: group:<id>#member@user:<id>
-func (obj *ObjGroup) MemberUser(subs ...*ObjUser) *ObjGroup {
-	for i := range subs {
-		sub := subs[i]
-		obj.Builder.AddRelationship(v1.Relationship{
-			Resource: obj.Obj,
-			Relation: "member",
-			Subject: &v1.SubjectReference{
-				Object:           sub.Obj,
-				OptionalRelation: "",
-			},
-			OptionalCaveat: nil,
-		})
+// Uses Touch operation implicitly. For Delete/Create, use obj.Delete().Member_User() etc.
+func (obj *ObjGroup) Member_User(subs ...*ObjUser) *ObjGroup {
+	for _, sub := range subs {
+		obj.src.Touch().Add("member", sub.src.Obj, "")
 	}
 	return obj
 }
 
-// MemberGroup permissionrelation.zed:4
+// Member_User on Relates uses the specified operation (Touch/Create/Delete)
+func (r *GroupRelates) Member_User(subs ...*ObjUser) *GroupRelates {
+	for _, sub := range subs {
+		r.rel.Add("member", sub.src.Obj, "")
+	}
+	return r
+}
+
+// Member_Group permissionrelation.zed:4
 // Relationship: group:<id>#member@group:<id>#member
-func (obj *ObjGroup) MemberGroup(subs ...*ObjGroup) *ObjGroup {
-	for i := range subs {
-		sub := subs[i]
-		obj.Builder.AddRelationship(v1.Relationship{
-			Resource: obj.Obj,
-			Relation: "member",
-			Subject: &v1.SubjectReference{
-				Object:           sub.Obj,
-				OptionalRelation: "member",
-			},
-			OptionalCaveat: nil,
-		})
+// Uses Touch operation implicitly. For Delete/Create, use obj.Delete().Member_Group() etc.
+func (obj *ObjGroup) Member_Group(subs ...*ObjGroup) *ObjGroup {
+	for _, sub := range subs {
+		obj.src.Touch().Add("member", sub.src.Obj, "member")
 	}
 	return obj
 }
 
-// CanMembership permissionrelation.zed:8
-// Object: group:<id>
-func (obj *ObjGroup) CanMembership(ctx context.Context) (context.Context, string, *v1.ObjectReference) {
-	return ctx, "membership", obj.Object()
+// Member_Group on Relates uses the specified operation (Touch/Create/Delete)
+func (r *GroupRelates) Member_Group(subs ...*ObjGroup) *GroupRelates {
+	for _, sub := range subs {
+		r.rel.Add("member", sub.src.Obj, "member")
+	}
+	return r
 }
 
-// AsAnyMembership
-// folder:<id>#owner
-func (obj *ObjGroup) AsAnyMembership() *ObjGroup {
-	return &ObjGroup{
-		Obj:              obj.Object(),
-		OptionalRelation: "membership",
-		Builder:          obj.Builder,
+// CanMembership_User checks if the subject has membership permission
+// // Object: group:<id>
+func (obj *ObjGroup) CanMembership_User(sub *ObjUser) *v1.CheckPermissionRequest {
+	return &v1.CheckPermissionRequest{
+		Resource:   obj.src.Obj,
+		Permission: "membership",
+		Subject: &v1.SubjectReference{
+			Object:           sub.src.Obj,
+			OptionalRelation: "",
+		},
 	}
 }
 
-// AsAnyMember
-// group:<id>#member
-func (obj *ObjGroup) AsAnyMember() *ObjGroup {
-	return &ObjGroup{
-		Obj:              obj.Object(),
-		OptionalRelation: "member",
-		Builder:          obj.Builder,
+// CanMembership_GroupMember checks if the subject has membership permission
+// // Object: group:<id>
+func (obj *ObjGroup) CanMembership_GroupMember(sub *ObjGroup) *v1.CheckPermissionRequest {
+	return &v1.CheckPermissionRequest{
+		Resource:   obj.src.Obj,
+		Permission: "membership",
+		Subject: &v1.SubjectReference{
+			Object:           sub.src.Obj,
+			OptionalRelation: "member",
+		},
 	}
 }
 
 type ObjUser struct {
-	Obj              *v1.ObjectReference
-	OptionalRelation string
-	Builder          *Builder
+	src Object
 }
 
-func (b *Builder) User(id fmt.Stringer) *ObjUser {
-	o := &ObjUser{
-		Obj: &v1.ObjectReference{
+func (b *SchemaBuilder) User(id fmt.Stringer) *ObjUser {
+	return &ObjUser{
+		src: b.Object(&v1.ObjectReference{
 			ObjectType: "user",
 			ObjectId:   id.String(),
-		},
-		Builder: b,
+		}, ""),
 	}
-	return o
 }
 
+// Object returns the underlying ObjectReference for use in SpiceDB API calls.
 func (obj *ObjUser) Object() *v1.ObjectReference {
-	return obj.Obj
+	return obj.src.Obj
 }
 
+// AsSubject returns this object as a SubjectReference for use in checks.
 func (obj *ObjUser) AsSubject() *v1.SubjectReference {
 	return &v1.SubjectReference{
-		Object:           obj.Object(),
-		OptionalRelation: obj.OptionalRelation,
+		Object:           obj.src.Obj,
+		OptionalRelation: obj.src.OptionalRelation,
 	}
 }

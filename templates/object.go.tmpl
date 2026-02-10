@@ -1,0 +1,132 @@
+{{ define "object" }}
+
+{{ $objectName := (capitalize .Name) }}
+{{ $objectType := print "Obj" $objectName }}
+{{ $relationName := .Name }}
+
+type {{ $objectType }} struct {
+	src Object
+}
+
+func (b *SchemaBuilder) {{ $objectName }}(id fmt.Stringer) *{{ $objectType }} {
+	return &{{ $objectType }}{
+		src: b.Object(&v1.ObjectReference{
+			ObjectType: "{{ $relationName }}",
+			ObjectId:   id.String(),
+		}, ""),
+	}
+}
+
+// Object returns the underlying ObjectReference for use in SpiceDB API calls.
+func (obj *{{ $objectType }}) Object() *v1.ObjectReference {
+	return obj.src.Obj
+}
+
+// AsSubject returns this object as a SubjectReference for use in checks.
+func (obj *{{ $objectType }}) AsSubject() *v1.SubjectReference {
+	return &v1.SubjectReference{
+		Object: obj.src.Obj,
+		OptionalRelation: obj.src.OptionalRelation,
+	}
+}
+
+{{ $filename := .Filename }}
+{{ $outerName := .Name }}
+{{/* Relation constant methods */}}
+{{ range $relation, $_ := .RelationConstants }}
+func (obj *{{ $objectType }}) Relation{{ capitalize $relation }}() string {
+	return "{{ $relation }}"
+}
+{{ end }}
+
+{{/* Permission constant methods */}}
+{{ range $perm := .Permissions }}
+func (obj *{{ $objectType }}) Permission{{ capitalize $perm.Permission }}() string {
+	return "{{ $perm.Permission }}"
+}
+{{ end }}
+
+{{ $objectRelationType := print $objectName "Relates" }}
+{{/* Only generate Relates type and Touch/Create/Delete if there are direct relations */}}
+{{ if .DirectRelations }}
+type {{ $objectRelationType }} struct {
+	obj *{{ $objectType }}
+	rel Relationship
+}
+
+func (obj *{{ $objectType }}) Touch() *{{ $objectRelationType }} {
+	return &{{ $objectRelationType }}{obj: obj, rel: obj.src.Touch()}
+}
+
+func (obj *{{ $objectType }}) Delete() *{{ $objectRelationType }} {
+	return &{{ $objectRelationType }}{obj: obj, rel: obj.src.Delete()}
+}
+
+func (obj *{{ $objectType }}) Create() *{{ $objectRelationType }} {
+	return &{{ $objectRelationType }}{obj: obj, rel: obj.src.Create()}
+}
+{{ end }}
+
+{{/* Relationship building methods - direct on object uses Touch implicitly */}}
+{{ range $index, $element := .DirectRelations }}
+{{/* Wildcard '*' is a keyword for spicedb to represent 'all objects of this type' */}}
+{{ if eq $element.Subject.Object.ObjectId "*" }}
+// {{ capitalize $element.RelationName }}Wildcard {{ $filename }}:{{ .LinePos }}
+{{ comment $element.Comment }}
+func (obj *Obj{{ capitalize $outerName }}) {{ capitalize $element.RelationName }}Wildcard() *Obj{{ capitalize $outerName }} {
+	obj.src.Touch().Add("{{ $element.RelationName }}", &v1.ObjectReference{
+		ObjectType: "{{ $element.Subject.Object.ObjectType }}",
+		ObjectId: "*",
+	}, "{{ $element.Subject.OptionalRelation }}")
+	return obj
+}
+
+// {{ capitalize $element.RelationName }}Wildcard on Relates uses the specified operation
+func (r *{{ $objectRelationType }}) {{ capitalize $element.RelationName }}Wildcard() *{{ $objectRelationType }} {
+	r.rel.Add("{{ $element.RelationName }}", &v1.ObjectReference{
+		ObjectType: "{{ $element.Subject.Object.ObjectType }}",
+		ObjectId: "*",
+	}, "{{ $element.Subject.OptionalRelation }}")
+	return r
+}
+
+{{ else }}
+// {{ capitalize $element.FunctionName }} {{ $filename }}:{{ .LinePos }}
+{{ comment $element.Comment }}
+// Uses Touch operation implicitly. For Delete/Create, use obj.Delete().{{ capitalize $element.FunctionName }}() etc.
+func (obj *Obj{{ capitalize $outerName }}) {{ capitalize $element.FunctionName }}(subs ...*Obj{{ capitalize $element.Subject.Object.ObjectType }}) *Obj{{ capitalize $outerName }} {
+	for _, sub := range subs {
+		obj.src.Touch().Add("{{ $element.RelationName }}", sub.src.Obj, "{{ $element.Subject.OptionalRelation }}")
+	}
+	return obj
+}
+
+// {{ capitalize $element.FunctionName }} on Relates uses the specified operation (Touch/Create/Delete)
+func (r *{{ $objectRelationType }}) {{ capitalize $element.FunctionName }}(subs ...*Obj{{ capitalize $element.Subject.Object.ObjectType }}) *{{ $objectRelationType }} {
+	for _, sub := range subs {
+		r.rel.Add("{{ $element.RelationName }}", sub.src.Obj, "{{ $element.Subject.OptionalRelation }}")
+	}
+	return r
+}
+{{ end }}
+{{ end }}
+
+{{/* Permission check methods - Can<Permission>_<SubjectType> pattern */}}
+{{ range $perm := .Permissions }}
+{{ range $subj := $.UniqueSubjectTypes }}
+// Can{{ capitalize $perm.Permission }}_{{ capitalize $subj.ObjectType }}{{ if $subj.OptionalRelation }}{{ capitalize $subj.OptionalRelation }}{{ end }} checks if the subject has {{ $perm.Permission }} permission
+// {{ comment $perm.Comment }}
+func (obj *Obj{{ capitalize $outerName }}) Can{{ capitalize $perm.Permission }}_{{ capitalize $subj.ObjectType }}{{ if $subj.OptionalRelation }}{{ capitalize $subj.OptionalRelation }}{{ end }}(sub *Obj{{ capitalize $subj.ObjectType }}) *v1.CheckPermissionRequest {
+	return &v1.CheckPermissionRequest{
+		Resource: obj.src.Obj,
+		Permission: "{{ $perm.Permission }}",
+		Subject: &v1.SubjectReference{
+			Object: sub.src.Obj,
+			OptionalRelation: "{{ $subj.OptionalRelation }}",
+		},
+	}
+}
+{{ end }}
+{{ end }}
+
+{{ end }}
