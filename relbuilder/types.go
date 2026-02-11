@@ -2,6 +2,7 @@ package relbuilder
 
 import (
 	v1 "github.com/authzed/authzed-go/proto/authzed/api/v1"
+	"github.com/authzed/gochugaru/rel"
 )
 
 // String is a convenience type that implements fmt.Stringer for string literals.
@@ -19,11 +20,21 @@ func (b *Build) Object(ref *v1.ObjectReference, optRel string) Object {
 	}
 }
 
+var _ rel.Objecter = (*Object)(nil)
+
 // Object represents a SpiceDB object reference with an optional relation.
 type Object struct {
 	Obj              *v1.ObjectReference
 	OptionalRelation string
 	builder          Builder
+}
+
+func (obj Object) Object() rel.Object {
+	return rel.Object{
+		Typ:      obj.Obj.ObjectType,
+		ID:       obj.Obj.ObjectId,
+		Relation: obj.OptionalRelation,
+	}
 }
 
 func (obj *Object) Touch() Relationship {

@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	v1 "github.com/authzed/authzed-go/proto/authzed/api/v1"
+	"github.com/authzed/gochugaru/rel"
 	"github.com/google/uuid"
 
 	"github.com/Emyrk/zedgen/relbuilder"

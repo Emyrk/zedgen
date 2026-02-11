@@ -6,6 +6,7 @@ import (
 
 	. "github.com/Emyrk/zedgen/relbuilder"
 	v1 "github.com/authzed/authzed-go/proto/authzed/api/v1"
+	"github.com/authzed/gochugaru/rel"
 )
 
 // SchemaBuilder is the entry point for building relationships and permission checks.
@@ -35,8 +36,8 @@ func (b *SchemaBuilder) Group(id fmt.Stringer) *ObjGroup {
 }
 
 // Object returns the underlying ObjectReference for use in SpiceDB API calls.
-func (obj *ObjGroup) Object() *v1.ObjectReference {
-	return obj.src.Obj
+func (obj *ObjGroup) Object() rel.Object {
+	return obj.src.Object()
 }
 
 // AsSubject returns this object as a SubjectReference for use in checks.
@@ -169,8 +170,8 @@ func (b *SchemaBuilder) User(id fmt.Stringer) *ObjUser {
 }
 
 // Object returns the underlying ObjectReference for use in SpiceDB API calls.
-func (obj *ObjUser) Object() *v1.ObjectReference {
-	return obj.src.Obj
+func (obj *ObjUser) Object() rel.Object {
+	return obj.src.Object()
 }
 
 // AsSubject returns this object as a SubjectReference for use in checks.

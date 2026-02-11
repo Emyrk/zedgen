@@ -18,8 +18,8 @@ func (b *SchemaBuilder) {{ $objectName }}(id fmt.Stringer) *{{ $objectType }} {
 }
 
 // Object returns the underlying ObjectReference for use in SpiceDB API calls.
-func (obj *{{ $objectType }}) Object() *v1.ObjectReference {
-	return obj.src.Obj
+func (obj *{{ $objectType }}) Object() rel.Object {
+	return obj.src.Object()
 }
 
 // AsSubject returns this object as a SubjectReference for use in checks.
