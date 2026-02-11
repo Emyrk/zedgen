@@ -116,14 +116,15 @@ func (r *{{ $objectRelationType }}) {{ capitalize $element.FunctionName }}(subs 
 {{ range $subj := $.UniqueSubjectTypes }}
 // Can{{ capitalize $perm.Permission }}_{{ capitalize $subj.ObjectType }}{{ if $subj.OptionalRelation }}{{ capitalize $subj.OptionalRelation }}{{ end }} checks if the subject has {{ $perm.Permission }} permission
 // {{ comment $perm.Comment }}
-func (obj *Obj{{ capitalize $outerName }}) Can{{ capitalize $perm.Permission }}_{{ capitalize $subj.ObjectType }}{{ if $subj.OptionalRelation }}{{ capitalize $subj.OptionalRelation }}{{ end }}(sub *Obj{{ capitalize $subj.ObjectType }}) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource: obj.src.Obj,
-		Permission: "{{ $perm.Permission }}",
-		Subject: &v1.SubjectReference{
-			Object: sub.src.Obj,
-			OptionalRelation: "{{ $subj.OptionalRelation }}",
-		},
+func (obj *Obj{{ capitalize $outerName }}) Can{{ capitalize $perm.Permission }}_{{ capitalize $subj.ObjectType }}{{ if $subj.OptionalRelation }}{{ capitalize $subj.OptionalRelation }}{{ end }}(sub *Obj{{ capitalize $subj.ObjectType }}) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "{{ $perm.Permission }}",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 {{ end }}

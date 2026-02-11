@@ -131,28 +131,30 @@ func (r *GroupRelates) MemberWildcard() *GroupRelates {
 // CanMembership_User checks if the subject has membership permission
 // // Object: group:<id>
 // Schema: permission membership = member
-func (obj *ObjGroup) CanMembership_User(sub *ObjUser) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "membership",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjGroup) CanMembership_User(sub *ObjUser) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "membership",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanMembership_GroupMember checks if the subject has membership permission
 // // Object: group:<id>
 // Schema: permission membership = member
-func (obj *ObjGroup) CanMembership_GroupMember(sub *ObjGroup) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "membership",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "member",
-		},
+func (obj *ObjGroup) CanMembership_GroupMember(sub *ObjGroup) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "membership",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 

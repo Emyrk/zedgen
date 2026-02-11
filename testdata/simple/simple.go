@@ -120,28 +120,30 @@ func (r *ResourceRelates) Viewer(subs ...*ObjUser) *ResourceRelates {
 // CanWrite_User checks if the subject has write permission
 // // Object: resource:<id>
 // Schema: permission write = writer
-func (obj *ObjResource) CanWrite_User(sub *ObjUser) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "write",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjResource) CanWrite_User(sub *ObjUser) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "write",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanView_User checks if the subject has view permission
 // // Object: resource:<id>
 // Schema: permission view = viewer + writer
-func (obj *ObjResource) CanView_User(sub *ObjUser) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "view",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjResource) CanView_User(sub *ObjUser) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "view",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 

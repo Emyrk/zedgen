@@ -75,9 +75,9 @@ func main() {
         Updates: b.Updates(),
     })
 
-    // Permission checks - type-safe!
-    checkReq := repo.CanPush_User(alice)
-    resp, err := client.CheckPermission(ctx, checkReq)
+    // Permission checks - type-safe, returns rel.Relationship
+    check := repo.CanPush_User(alice)
+    resp, err := client.CheckPermission(ctx, check.V1CheckPermissionRequest())
 
     // Explicit Delete when needed
     repo.Delete().Writer_User(alice)
@@ -93,7 +93,7 @@ func main() {
 | Add with subject relation | `repo.Writer_TeamMember(team)` |
 | Add wildcard | `repo.PublicWildcard()` |
 | Explicit operation | `repo.Delete().Writer(alice)` |
-| Permission check | `repo.CanPush_User(alice)` → `*v1.CheckPermissionRequest` |
+| Permission check | `repo.CanPush_User(alice)` → `rel.Relationship` |
 | Get updates | `b.Updates()` → `[]*v1.RelationshipUpdate` |
 | Access constants | `repo.RelationWriter()`, `repo.PermissionPush()` |
 

@@ -94,14 +94,15 @@ func (r *FileRelates) Folder(subs ...*ObjFolder) *FileRelates {
 // CanRead_Folder checks if the subject has read permission
 // // Object: file:<id>
 // Schema: permission read = folder->read
-func (obj *ObjFile) CanRead_Folder(sub *ObjFolder) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "read",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjFile) CanRead_Folder(sub *ObjFolder) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "read",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
@@ -195,28 +196,30 @@ func (r *FolderRelates) Owner_Group(subs ...*ObjGroup) *FolderRelates {
 // CanRead_User checks if the subject has read permission
 // // Object: folder:<id>
 // Schema: permission read = owner
-func (obj *ObjFolder) CanRead_User(sub *ObjUser) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "read",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjFolder) CanRead_User(sub *ObjUser) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "read",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanRead_GroupMembership checks if the subject has read permission
 // // Object: folder:<id>
 // Schema: permission read = owner
-func (obj *ObjFolder) CanRead_GroupMembership(sub *ObjGroup) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "read",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "membership",
-		},
+func (obj *ObjFolder) CanRead_GroupMembership(sub *ObjGroup) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "read",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
@@ -309,27 +312,29 @@ func (r *GroupRelates) Member_Group(subs ...*ObjGroup) *GroupRelates {
 
 // CanMembership_User checks if the subject has membership permission
 // // Object: group:<id>
-func (obj *ObjGroup) CanMembership_User(sub *ObjUser) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "membership",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjGroup) CanMembership_User(sub *ObjUser) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "membership",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanMembership_GroupMember checks if the subject has membership permission
 // // Object: group:<id>
-func (obj *ObjGroup) CanMembership_GroupMember(sub *ObjGroup) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "membership",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "member",
-		},
+func (obj *ObjGroup) CanMembership_GroupMember(sub *ObjGroup) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "membership",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 

@@ -9,7 +9,6 @@ import (
 	"fmt"
 
 	v1 "github.com/authzed/authzed-go/proto/authzed/api/v1"
-	"github.com/authzed/gochugaru/rel"
 	"github.com/google/uuid"
 
 	"github.com/Emyrk/zedgen/relbuilder"
@@ -65,18 +64,18 @@ func Example() {
 	// Type-safe permission checks
 	// =========================================
 
-	// Check if alice can push - returns *v1.CheckPermissionRequest
+	// Check if alice can push - returns rel.Relationship
 	canPush := repo.CanPush_User(alice)
 	fmt.Printf("Check: can %s %s on %s:%s?\n",
-		canPush.Subject.Object.ObjectId,
-		canPush.Permission,
-		canPush.Resource.ObjectType,
-		canPush.Resource.ObjectId,
+		canPush.SubjectID,
+		canPush.ResourceRelation,
+		canPush.ResourceType,
+		canPush.ResourceID,
 	)
 
 	// Check with team#member subject
 	canRead := repo.CanRead_TeamMember(devTeam)
-	_ = canRead // use with client.CheckPermission(ctx, canRead)
+	_ = canRead // use with client.CheckPermission(ctx, canRead.V1())
 
 	// =========================================
 	// Explicit operations (Delete/Create)
@@ -120,8 +119,13 @@ func ExampleWithClient(ctx context.Context, client v1.PermissionsServiceClient) 
 		return fmt.Errorf("write relationships: %w", err)
 	}
 
-	// Check permission
-	resp, err := client.CheckPermission(ctx, repo.CanPush_User(alice))
+	// Check permission - rel.Relationship has V1() to convert to proto
+	check := repo.CanPush_User(alice)
+	resp, err := client.CheckPermission(ctx, &v1.CheckPermissionRequest{
+		Resource:   check.V1().Resource,
+		Permission: check.Permission(),
+		Subject:    check.V1().Subject,
+	})
 	if err != nil {
 		return fmt.Errorf("check permission: %w", err)
 	}

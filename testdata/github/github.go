@@ -175,68 +175,73 @@ func (r *OrganizationRelates) Team_maintainer(subs ...*ObjUser) *OrganizationRel
 
 // CanCreate_repository_User checks if the subject has create_repository permission
 // // Object: organization:<id>
-func (obj *ObjOrganization) CanCreate_repository_User(sub *ObjUser) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "create_repository",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjOrganization) CanCreate_repository_User(sub *ObjUser) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "create_repository",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanManage_billing_User checks if the subject has manage_billing permission
 // // Object: organization:<id>
-func (obj *ObjOrganization) CanManage_billing_User(sub *ObjUser) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "manage_billing",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjOrganization) CanManage_billing_User(sub *ObjUser) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "manage_billing",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanUser_seat_User checks if the subject has user_seat permission
 // // Object: organization:<id>
 // Schema: permission user_seat = owner + member + team_maintainer
-func (obj *ObjOrganization) CanUser_seat_User(sub *ObjUser) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "user_seat",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjOrganization) CanUser_seat_User(sub *ObjUser) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "user_seat",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanOwner_User checks if the subject has owner permission
 // // Object: organization:<id>
 // Schema: permission owner = own
-func (obj *ObjOrganization) CanOwner_User(sub *ObjUser) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "owner",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjOrganization) CanOwner_User(sub *ObjUser) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "owner",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanChange_team_name_User checks if the subject has change_team_name permission
 // // Object: organization:<id>
-func (obj *ObjOrganization) CanChange_team_name_User(sub *ObjUser) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "change_team_name",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjOrganization) CanChange_team_name_User(sub *ObjUser) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "change_team_name",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
@@ -574,448 +579,481 @@ func (r *RepositoryRelates) PublicWildcard() *RepositoryRelates {
 
 // CanClone_Organization checks if the subject has clone permission
 // // Object: repository:<id>
-func (obj *ObjRepository) CanClone_Organization(sub *ObjOrganization) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "clone",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjRepository) CanClone_Organization(sub *ObjOrganization) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "clone",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanClone_User checks if the subject has clone permission
 // // Object: repository:<id>
-func (obj *ObjRepository) CanClone_User(sub *ObjUser) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "clone",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjRepository) CanClone_User(sub *ObjUser) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "clone",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanClone_TeamMember checks if the subject has clone permission
 // // Object: repository:<id>
-func (obj *ObjRepository) CanClone_TeamMember(sub *ObjTeam) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "clone",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "member",
-		},
+func (obj *ObjRepository) CanClone_TeamMember(sub *ObjTeam) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "clone",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanPush_Organization checks if the subject has push permission
 // // Object: repository:<id>
 // Schema: permission push = writer + maintainer + admin + organization->owner
-func (obj *ObjRepository) CanPush_Organization(sub *ObjOrganization) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "push",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjRepository) CanPush_Organization(sub *ObjOrganization) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "push",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanPush_User checks if the subject has push permission
 // // Object: repository:<id>
 // Schema: permission push = writer + maintainer + admin + organization->owner
-func (obj *ObjRepository) CanPush_User(sub *ObjUser) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "push",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjRepository) CanPush_User(sub *ObjUser) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "push",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanPush_TeamMember checks if the subject has push permission
 // // Object: repository:<id>
 // Schema: permission push = writer + maintainer + admin + organization->owner
-func (obj *ObjRepository) CanPush_TeamMember(sub *ObjTeam) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "push",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "member",
-		},
+func (obj *ObjRepository) CanPush_TeamMember(sub *ObjTeam) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "push",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanRead_Organization checks if the subject has read permission
 // // Object: repository:<id>
-func (obj *ObjRepository) CanRead_Organization(sub *ObjOrganization) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "read",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjRepository) CanRead_Organization(sub *ObjOrganization) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "read",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanRead_User checks if the subject has read permission
 // // Object: repository:<id>
-func (obj *ObjRepository) CanRead_User(sub *ObjUser) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "read",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjRepository) CanRead_User(sub *ObjUser) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "read",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanRead_TeamMember checks if the subject has read permission
 // // Object: repository:<id>
-func (obj *ObjRepository) CanRead_TeamMember(sub *ObjTeam) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "read",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "member",
-		},
+func (obj *ObjRepository) CanRead_TeamMember(sub *ObjTeam) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "read",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanDelete_Organization checks if the subject has delete permission
 // // Object: repository:<id>
 // Schema: permission delete = admin + organization->owner
-func (obj *ObjRepository) CanDelete_Organization(sub *ObjOrganization) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "delete",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjRepository) CanDelete_Organization(sub *ObjOrganization) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "delete",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanDelete_User checks if the subject has delete permission
 // // Object: repository:<id>
 // Schema: permission delete = admin + organization->owner
-func (obj *ObjRepository) CanDelete_User(sub *ObjUser) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "delete",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjRepository) CanDelete_User(sub *ObjUser) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "delete",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanDelete_TeamMember checks if the subject has delete permission
 // // Object: repository:<id>
 // Schema: permission delete = admin + organization->owner
-func (obj *ObjRepository) CanDelete_TeamMember(sub *ObjTeam) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "delete",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "member",
-		},
+func (obj *ObjRepository) CanDelete_TeamMember(sub *ObjTeam) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "delete",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanCreate_issue_Organization checks if the subject has create_issue permission
 // // Object: repository:<id>
-func (obj *ObjRepository) CanCreate_issue_Organization(sub *ObjOrganization) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "create_issue",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjRepository) CanCreate_issue_Organization(sub *ObjOrganization) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "create_issue",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanCreate_issue_User checks if the subject has create_issue permission
 // // Object: repository:<id>
-func (obj *ObjRepository) CanCreate_issue_User(sub *ObjUser) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "create_issue",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjRepository) CanCreate_issue_User(sub *ObjUser) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "create_issue",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanCreate_issue_TeamMember checks if the subject has create_issue permission
 // // Object: repository:<id>
-func (obj *ObjRepository) CanCreate_issue_TeamMember(sub *ObjTeam) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "create_issue",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "member",
-		},
+func (obj *ObjRepository) CanCreate_issue_TeamMember(sub *ObjTeam) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "create_issue",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanClose_issue_Organization checks if the subject has close_issue permission
 // // Object: repository:<id>
 // Schema: permission close_issue = triager + writer + maintainer + admin + organization->owner
-func (obj *ObjRepository) CanClose_issue_Organization(sub *ObjOrganization) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "close_issue",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjRepository) CanClose_issue_Organization(sub *ObjOrganization) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "close_issue",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanClose_issue_User checks if the subject has close_issue permission
 // // Object: repository:<id>
 // Schema: permission close_issue = triager + writer + maintainer + admin + organization->owner
-func (obj *ObjRepository) CanClose_issue_User(sub *ObjUser) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "close_issue",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjRepository) CanClose_issue_User(sub *ObjUser) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "close_issue",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanClose_issue_TeamMember checks if the subject has close_issue permission
 // // Object: repository:<id>
 // Schema: permission close_issue = triager + writer + maintainer + admin + organization->owner
-func (obj *ObjRepository) CanClose_issue_TeamMember(sub *ObjTeam) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "close_issue",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "member",
-		},
+func (obj *ObjRepository) CanClose_issue_TeamMember(sub *ObjTeam) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "close_issue",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanCreate_pull_request_Organization checks if the subject has create_pull_request permission
 // // Object: repository:<id>
-func (obj *ObjRepository) CanCreate_pull_request_Organization(sub *ObjOrganization) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "create_pull_request",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjRepository) CanCreate_pull_request_Organization(sub *ObjOrganization) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "create_pull_request",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanCreate_pull_request_User checks if the subject has create_pull_request permission
 // // Object: repository:<id>
-func (obj *ObjRepository) CanCreate_pull_request_User(sub *ObjUser) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "create_pull_request",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjRepository) CanCreate_pull_request_User(sub *ObjUser) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "create_pull_request",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanCreate_pull_request_TeamMember checks if the subject has create_pull_request permission
 // // Object: repository:<id>
-func (obj *ObjRepository) CanCreate_pull_request_TeamMember(sub *ObjTeam) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "create_pull_request",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "member",
-		},
+func (obj *ObjRepository) CanCreate_pull_request_TeamMember(sub *ObjTeam) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "create_pull_request",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanMerge_pull_request_Organization checks if the subject has merge_pull_request permission
 // // Object: repository:<id>
 // Schema: permission merge_pull_request = maintainer + organization->owner
-func (obj *ObjRepository) CanMerge_pull_request_Organization(sub *ObjOrganization) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "merge_pull_request",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjRepository) CanMerge_pull_request_Organization(sub *ObjOrganization) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "merge_pull_request",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanMerge_pull_request_User checks if the subject has merge_pull_request permission
 // // Object: repository:<id>
 // Schema: permission merge_pull_request = maintainer + organization->owner
-func (obj *ObjRepository) CanMerge_pull_request_User(sub *ObjUser) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "merge_pull_request",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjRepository) CanMerge_pull_request_User(sub *ObjUser) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "merge_pull_request",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanMerge_pull_request_TeamMember checks if the subject has merge_pull_request permission
 // // Object: repository:<id>
 // Schema: permission merge_pull_request = maintainer + organization->owner
-func (obj *ObjRepository) CanMerge_pull_request_TeamMember(sub *ObjTeam) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "merge_pull_request",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "member",
-		},
+func (obj *ObjRepository) CanMerge_pull_request_TeamMember(sub *ObjTeam) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "merge_pull_request",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanClose_pull_request_Organization checks if the subject has close_pull_request permission
 // // Object: repository:<id>
 // Schema: permission close_pull_request = triager + writer + maintainer + admin + organization->owner
-func (obj *ObjRepository) CanClose_pull_request_Organization(sub *ObjOrganization) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "close_pull_request",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjRepository) CanClose_pull_request_Organization(sub *ObjOrganization) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "close_pull_request",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanClose_pull_request_User checks if the subject has close_pull_request permission
 // // Object: repository:<id>
 // Schema: permission close_pull_request = triager + writer + maintainer + admin + organization->owner
-func (obj *ObjRepository) CanClose_pull_request_User(sub *ObjUser) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "close_pull_request",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjRepository) CanClose_pull_request_User(sub *ObjUser) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "close_pull_request",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanClose_pull_request_TeamMember checks if the subject has close_pull_request permission
 // // Object: repository:<id>
 // Schema: permission close_pull_request = triager + writer + maintainer + admin + organization->owner
-func (obj *ObjRepository) CanClose_pull_request_TeamMember(sub *ObjTeam) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "close_pull_request",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "member",
-		},
+func (obj *ObjRepository) CanClose_pull_request_TeamMember(sub *ObjTeam) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "close_pull_request",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanManage_setting_Organization checks if the subject has manage_setting permission
 // // Object: repository:<id>
-func (obj *ObjRepository) CanManage_setting_Organization(sub *ObjOrganization) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "manage_setting",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjRepository) CanManage_setting_Organization(sub *ObjOrganization) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "manage_setting",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanManage_setting_User checks if the subject has manage_setting permission
 // // Object: repository:<id>
-func (obj *ObjRepository) CanManage_setting_User(sub *ObjUser) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "manage_setting",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjRepository) CanManage_setting_User(sub *ObjUser) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "manage_setting",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanManage_setting_TeamMember checks if the subject has manage_setting permission
 // // Object: repository:<id>
-func (obj *ObjRepository) CanManage_setting_TeamMember(sub *ObjTeam) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "manage_setting",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "member",
-		},
+func (obj *ObjRepository) CanManage_setting_TeamMember(sub *ObjTeam) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "manage_setting",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanManage_sensitive_setting_Organization checks if the subject has manage_sensitive_setting permission
 // // Object: repository:<id>
 // Schema: permission manage_sensitive_setting = admin + organization->owner
-func (obj *ObjRepository) CanManage_sensitive_setting_Organization(sub *ObjOrganization) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "manage_sensitive_setting",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjRepository) CanManage_sensitive_setting_Organization(sub *ObjOrganization) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "manage_sensitive_setting",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanManage_sensitive_setting_User checks if the subject has manage_sensitive_setting permission
 // // Object: repository:<id>
 // Schema: permission manage_sensitive_setting = admin + organization->owner
-func (obj *ObjRepository) CanManage_sensitive_setting_User(sub *ObjUser) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "manage_sensitive_setting",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjRepository) CanManage_sensitive_setting_User(sub *ObjUser) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "manage_sensitive_setting",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanManage_sensitive_setting_TeamMember checks if the subject has manage_sensitive_setting permission
 // // Object: repository:<id>
 // Schema: permission manage_sensitive_setting = admin + organization->owner
-func (obj *ObjRepository) CanManage_sensitive_setting_TeamMember(sub *ObjTeam) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "manage_sensitive_setting",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "member",
-		},
+func (obj *ObjRepository) CanManage_sensitive_setting_TeamMember(sub *ObjTeam) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "manage_sensitive_setting",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
@@ -1157,84 +1195,90 @@ func (r *TeamRelates) Direct_member(subs ...*ObjUser) *TeamRelates {
 // CanMember_Organization checks if the subject has member permission
 // // Object: team:<id>
 // Schema: permission member = maintainer + direct_member
-func (obj *ObjTeam) CanMember_Organization(sub *ObjOrganization) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "member",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjTeam) CanMember_Organization(sub *ObjOrganization) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "member",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanMember_Team checks if the subject has member permission
 // // Object: team:<id>
 // Schema: permission member = maintainer + direct_member
-func (obj *ObjTeam) CanMember_Team(sub *ObjTeam) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "member",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjTeam) CanMember_Team(sub *ObjTeam) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "member",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanMember_User checks if the subject has member permission
 // // Object: team:<id>
 // Schema: permission member = maintainer + direct_member
-func (obj *ObjTeam) CanMember_User(sub *ObjUser) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "member",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjTeam) CanMember_User(sub *ObjUser) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "member",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanChange_team_name_Organization checks if the subject has change_team_name permission
 // // Object: team:<id>
 // Schema: permission change_team_name = maintainer + parent->change_team_name
-func (obj *ObjTeam) CanChange_team_name_Organization(sub *ObjOrganization) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "change_team_name",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjTeam) CanChange_team_name_Organization(sub *ObjOrganization) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "change_team_name",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanChange_team_name_Team checks if the subject has change_team_name permission
 // // Object: team:<id>
 // Schema: permission change_team_name = maintainer + parent->change_team_name
-func (obj *ObjTeam) CanChange_team_name_Team(sub *ObjTeam) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "change_team_name",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjTeam) CanChange_team_name_Team(sub *ObjTeam) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "change_team_name",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
 // CanChange_team_name_User checks if the subject has change_team_name permission
 // // Object: team:<id>
 // Schema: permission change_team_name = maintainer + parent->change_team_name
-func (obj *ObjTeam) CanChange_team_name_User(sub *ObjUser) *v1.CheckPermissionRequest {
-	return &v1.CheckPermissionRequest{
-		Resource:   obj.src.Obj,
-		Permission: "change_team_name",
-		Subject: &v1.SubjectReference{
-			Object:           sub.src.Obj,
-			OptionalRelation: "",
-		},
+func (obj *ObjTeam) CanChange_team_name_User(sub *ObjUser) rel.Relationship {
+	r, s := obj.src.Obj, sub.src
+	return rel.Relationship{
+		ResourceType:     r.ObjectType,
+		ResourceID:       r.ObjectId,
+		ResourceRelation: "change_team_name",
+		SubjectType:      s.Obj.ObjectType,
+		SubjectID:        s.Obj.ObjectId,
+		SubjectRelation:  s.OptionalRelation,
 	}
 }
 
