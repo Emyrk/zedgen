@@ -70,9 +70,10 @@ func main() {
     repo.Writer_User(alice).Writer_TeamMember(devTeam)
     repo.PublicWildcard() // user:* - anyone can read
 
-    // Get updates for WriteRelationships
+    // Get transaction for WriteRelationships
+    txn := b.Txn()
     _, err := client.WriteRelationships(ctx, &v1.WriteRelationshipsRequest{
-        Updates: b.Updates(),
+        Updates: txn.V1Updates,
     })
 
     // Permission checks - type-safe, returns rel.Relationship
@@ -94,7 +95,7 @@ func main() {
 | Add wildcard | `repo.PublicWildcard()` |
 | Explicit operation | `repo.Delete().Writer(alice)` |
 | Permission check | `repo.CanPush_User(alice)` → `rel.Relationship` |
-| Get updates | `b.Updates()` → `[]*v1.RelationshipUpdate` |
+| Get transaction | `b.Txn()` → `*rel.Txn` (use `.V1Updates`, `.V1Preconds`) |
 | Access constants | `repo.RelationWriter()`, `repo.PermissionPush()` |
 
 ## License

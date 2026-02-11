@@ -54,11 +54,11 @@ func Example() {
 	// =========================================
 	// Get relationship updates for SpiceDB
 	// =========================================
-	updates := b.Updates()
-	fmt.Printf("Built %d relationship updates\n", len(updates))
+	txn := b.Txn()
+	fmt.Printf("Built %d relationship updates\n", len(txn.V1Updates))
 
 	// Use with SpiceDB client:
-	// client.WriteRelationships(ctx, &v1.WriteRelationshipsRequest{Updates: updates})
+	// client.WriteRelationships(ctx, &v1.WriteRelationshipsRequest{Updates: txn.V1Updates})
 
 	// =========================================
 	// Type-safe permission checks
@@ -111,9 +111,10 @@ func ExampleWithClient(ctx context.Context, client v1.PermissionsServiceClient) 
 	repo.Writer_User(alice)
 
 	// Write to SpiceDB
+	txn := b.Txn()
 	_, err := client.WriteRelationships(ctx, &v1.WriteRelationshipsRequest{
-		Updates:               b.Updates(),
-		OptionalPreconditions: b.Preconditions(),
+		Updates:               txn.V1Updates,
+		OptionalPreconditions: txn.V1Preconds,
 	})
 	if err != nil {
 		return fmt.Errorf("write relationships: %w", err)

@@ -57,12 +57,8 @@ func (b *Build) Delete(r *v1.Relationship) Builder {
 	return b
 }
 
-// Updates returns the accumulated relationship updates for use with WriteRelationships.
-func (b *Build) Updates() []*v1.RelationshipUpdate {
-	return b.txn.V1Updates
-}
-
-// Preconditions returns any preconditions that were set on the transaction.
-func (b *Build) Preconditions() []*v1.Precondition {
-	return b.txn.V1Preconds
+// Txn returns the accumulated transaction for use with WriteRelationships.
+// Use txn.V1Updates for updates and txn.V1Preconds for preconditions.
+func (b *Build) Txn() *rel.Txn {
+	return &b.txn
 }
